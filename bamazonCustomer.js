@@ -39,68 +39,52 @@ function showTheGoods() {
             console.log(table.toString());
 
             inquirer.prompt([{
-                type: "confirm",
-                name: "reply",
-                message: "Would you like to purchase an item?"
-            }]).then(function(ans){
-                if (ans.reply){
-                    goShopping();
-                } 
-                    else {
-                        console.log("See you soon!");
-                        connection.end();
+                    name: "id",
+                    type: "input",
+                    message: "What is your desired items ID?",
+                    validate: function(value) {
+                        if (isNaN(value) == false && parseInt(value) <= response.length && parseInt(value) > 0) {
+                            return true;
+                        } 
+                            else {
+                                return false;
+                            }
                     }
+                }, 
+                {
+                    name: "quantity",
+                    type: "input",
+                    message: "How many of this item would you like to buy?",
+                    validate: function(value) {
+                        if (isNaN(value)) {
+                            return false;
+                        } 
+                            else {
+                                return true;
+                            }
+                    }
+                }
+                ]).then(function(choice){
+                    var what = (choice.id) - 1;
+                    var product = response[what];
+                    var quantity = choice.quantity;
+                    if (quantity < product.stock_quantity) {
+                        connection.query("UPDATE products SET ? WHERE ?", [
+                            {stock_quantity: product.stock_quantity - quantity}, 
+                            {id: product.id}
+                        ],  function(err, result) {
+                                if (err) throw err;
+                                console.log("Your total for " + quantity + " - " + product.product_name + " is: " + product.price.toFixed(2) * quantity);
+                                isThatAll();
+                            });
+
+                    } 
+                        else {
+                            console.log("Sorry, we don't have that many, we can only sell " + product.stock_quantity + ".");
+                            isThatAll();
+                        };
         });
     });
-};
-
-function goShopping() {
-
-    inquirer.prompt([{
-            name: "id",
-            type: "input",
-            message: "What is your desired items ID?",
-            validate: function(value) {
-                if (isNaN(value) == false && parseInt(value) <= response.length && parseInt(value) > 0) {
-                    return true;
-                } 
-                    else {
-                        return false;
-                    }
-            }
-        }, 
-        {
-            name: "quantity",
-            type: "input",
-            message: "How many of this item would you like to buy?",
-            validate: function(value) {
-                if (isNaN(value)) {
-                    return false;
-                } 
-                    else {
-                        return true;
-                    }
-            }
-        }
-        ]).this(function(choice){
-            var what = (choice.id) - 1;
-            var product = response[what];
-            var quantity = choice.quantity;
-            if (quantity < product.stock_quantity) {
-                connection.query("UPDATE products SET ? WHERE ?", [
-                    {stock_quantity: product.stock_quantity - quantity}, 
-                    {id: product.id}
-                ],  function(err, result) {
-                        if (err) throw err;
-                        console.log("Your total for " + quantity + " - " + product.name + " is: " + product.price.toFixed(2) * quantity);
-                    });
-
-            } 
-                else {
-                    console.log("Sorry, we don't have that many, we can only sell " + product.stock_quantity + ".");
-                };
-    });
-    isThatAll();
 };
 
 //asks if they would like to purchase another item
@@ -112,7 +96,7 @@ function isThatAll(){
         message: "Would you like to purchase another item?"
     }]).then(function(ans){
         if (ans.reply){
-            goShopping();
+            showTheGoods();
         } 
             else {
                 console.log("See you soon!");
