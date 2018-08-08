@@ -21,8 +21,8 @@ var connection = mysql.createConnection({
 // displays available products in a table
 function showTheGoods() {
 
-    connection.query('SELECT * FROM products', function(error, response) {
-        if (error) throw error;
+    connection.query('SELECT * FROM products', function(err, res) {
+        if (err) throw err;
 
             // cli-table build
             var table = new Table({
@@ -31,19 +31,21 @@ function showTheGoods() {
             });
             
             //push data to table
-            for (i = 0; i < response.length; i++) {
+            for (i = 0; i < res.length; i++) {
                 table.push(
-                    [response[i].id, response[i].product_name, response[i].price]
+                    [res[i].item_id, res[i].product_name, res[i].price]
                 )
             }
+            // displays table
             console.log(table.toString());
 
+            // prompts for purchase info
             inquirer.prompt([{
                     name: "id",
                     type: "input",
                     message: "What is your desired items ID?",
                     validate: function(value) {
-                        if (isNaN(value) == false && parseInt(value) <= response.length && parseInt(value) > 0) {
+                        if (isNaN(value) == false && parseInt(value) <= res.length && parseInt(value) > 0) {
                             return true;
                         } 
                             else {
@@ -64,19 +66,22 @@ function showTheGoods() {
                             }
                     }
                 }
+                // runs choices through a res and adjusts DB
                 ]).then(function(choice){
+
                     var what = (choice.id) - 1;
-                    var product = response[what];
-                    var quantity = choice.quantity;
-                    if (quantity < product.stock_quantity) {
+                    var product = res[what];
+                    var quantity = parseInt(choice.quantity);
+
+                    if (quantity <= product.stock_quantity) {
                         connection.query("UPDATE products SET ? WHERE ?", [
                             {stock_quantity: (product.stock_quantity - quantity)}, 
-                            {id: product.id}
+                            {item_id: product.id}
                         ],  function(err, result) {
                                 if (err) throw err;
                                 console.log("Your total for " + quantity + " - " + product.product_name + " is: " + product.price.toFixed(2) * quantity);
                                 isThatAll();
-                            });
+                        });
 
                     } 
                         else {
