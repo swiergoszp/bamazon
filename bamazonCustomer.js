@@ -14,7 +14,7 @@ var connection = mysql.createConnection({
 	user: "root",
 
 	// Your password
-	password: "redwings19",
+	password: "",
 	database: "bamazonDB"
 });
 
@@ -70,7 +70,7 @@ function showTheGoods() {
                     var quantity = choice.quantity;
                     if (quantity < product.stock_quantity) {
                         connection.query("UPDATE products SET ? WHERE ?", [
-                            {stock_quantity: product.stock_quantity - quantity}, 
+                            {stock_quantity: (product.stock_quantity - quantity)}, 
                             {id: product.id}
                         ],  function(err, result) {
                                 if (err) throw err;
