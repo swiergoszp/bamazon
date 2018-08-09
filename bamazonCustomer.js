@@ -14,7 +14,7 @@ var connection = mysql.createConnection({
 	user: "root",
 
 	// Your password
-	password: "",
+	password: "redwings19",
 	database: "bamazonDB"
 });
 
@@ -74,10 +74,16 @@ function showTheGoods() {
                     var quantity = parseInt(choice.quantity);
 
                     if (quantity <= product.stock_quantity) {
-                        connection.query("UPDATE products SET ? WHERE ?", [
-                            {stock_quantity: (product.stock_quantity - quantity)}, 
-                            {item_id: product.id}
-                        ],  function(err, result) {
+                        connection.query("UPDATE products SET ? WHERE ?", 
+                        [
+                            {
+                                stock_quantity: (product.stock_quantity - quantity)
+                            }, 
+                            {
+                                item_id: product.id
+                            }
+                        ],  
+                            function(err, result) {
                                 if (err) throw err;
                                 console.log("Your total for " + quantity + " - " + product.product_name + " is: " + product.price.toFixed(2) * quantity);
                                 isThatAll();
@@ -105,6 +111,7 @@ function isThatAll(){
         } 
             else {
                 console.log("See you soon!");
+                connection.end();
             }
     });
 };
