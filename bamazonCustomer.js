@@ -14,7 +14,7 @@ var connection = mysql.createConnection({
 	user: "root",
 
 	// Your password
-	password: "redwings19",
+	password: "",
 	database: "bamazonDB"
 });
 
@@ -26,14 +26,14 @@ function showTheGoods() {
 
             // cli-table build
             var table = new Table({
-                head: ["Item Id", "Product", "Price"]
-            , colWidths: [10, 35, 10]
+                head: ["Item Id", "Product", "Price" , "In-Stock"]
+            , colWidths: [7, 35, 10, 7]
             });
             
             //push data to table
             for (i = 0; i < res.length; i++) {
                 table.push(
-                    [res[i].item_id, res[i].product_name, res[i].price]
+                    [res[i].item_id, res[i].product_name, res[i].price, res[i].stock_quantity]
                 )
             }
             // displays table
@@ -69,32 +69,53 @@ function showTheGoods() {
                 // runs choices through a res and adjusts DB
                 ]).then(function(choice){
 
-                    var what = (choice.id) - 1;
+                    var what = choice.id - 1;
                     var product = res[what];
                     var quantity = parseInt(choice.quantity);
+                    var total = parseFloat((product.price * quantity).toFixed(2));
 
                     if (quantity <= product.stock_quantity) {
-                        connection.query("UPDATE products SET ? WHERE ?", 
-                        [
+                        connection.query(
+                            "UPDATE products SET ? WHERE ?", 
+                            [
                             {
-                                stock_quantity: (product.stock_quantity - quantity)
+                                stock_quantity: product.stock_quantity - quantity
                             }, 
                             {
-                                item_id: product.id
+                                item_id: choice.id
                             }
-                        ],  
+                            ],  
                             function(err, result) {
                                 if (err) throw err;
-                                console.log("Your total for " + quantity + " - " + product.product_name + " is: " + product.price.toFixed(2) * quantity);
-                                isThatAll();
+                                console.log("Your total for " + quantity + " - " + product.product_name + " is: $" + total);
                         });
 
+                        connection.query("SELECT * FROM departments", function(err, result){
+                            if(err) throw err;
+                            var index;
+                            for (var i = 0; i < result.length; i++) {
+                                if (result[i].department_name === product.department_name){
+                                    index = results[i];
+                                }
+                            }
+                            
+                            connection.query("UPDATE departments SET ? WHERE ?", [
+                            {
+                                total_sales: (index.total_sales) + total
+                            },
+                            {
+                                department_name: product.department_name
+                            }
+                            ], function(err, result){
+                                if(err) throw err;
+                            });
+                        });
                     } 
                         else {
-                            console.log("Sorry, we don't have that many, we can only sell " + product.stock_quantity + ".");
+                            console.log("Sorry, we don't have that manyin stock.");
                             isThatAll();
                         };
-        });
+            });
     });
 };
 

@@ -9,7 +9,8 @@ CREATE TABLE products (
     product_name VARCHAR (50) NOT NULL,
     department VARCHAR (20) NOT NULL,
     price DECIMAL (8, 2) NOT NULL,
-	stock_quantity INTEGER(10) NOT NULL
+	stock_quantity INTEGER(10) NOT NULL,
+    product_sales DECIMAL (8, 2)
 );
 
 
