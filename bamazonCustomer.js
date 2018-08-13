@@ -75,8 +75,7 @@ function showTheGoods() {
                     var total = parseFloat((product.price * quantity).toFixed(2));
 
                     if (quantity <= product.stock_quantity) {
-                        connection.query(
-                            "UPDATE products SET ? WHERE ?", 
+                        connection.query("UPDATE products SET ? WHERE ?", 
                             [
                             {
                                 stock_quantity: product.stock_quantity - quantity
@@ -90,29 +89,30 @@ function showTheGoods() {
                                 console.log("Your total for " + quantity + " - " + product.product_name + " is: $" + total);
                         });
 
-                        connection.query("SELECT * FROM departments", function(err, result){
+                        connection.query("SELECT * FROM departments", function(err, deptRes){
                             if(err) throw err;
                             var index;
-                            for (var i = 0; i < result.length; i++) {
-                                if (result[i].department_name === product.department_name){
-                                    index = results[i];
+                            for (var i = 0; i < deptRes.length; i++) {
+                                if (deptRes[i].department_name === product.department_name){
+                                    index = i;
                                 }
                             }
                             
                             connection.query("UPDATE departments SET ? WHERE ?", [
                             {
-                                total_sales: (index.total_sales) + total
+                                total_sales: deptRes[index].total_sales + total
                             },
                             {
                                 department_name: product.department_name
                             }
-                            ], function(err, result){
+                            ], function(err, deptRes){
                                 if(err) throw err;
                             });
+                            isThatAll();
                         });
                     } 
                         else {
-                            console.log("Sorry, we don't have that manyin stock.");
+                            console.log("Sorry, we don't have that many in stock.");
                             isThatAll();
                         };
             });

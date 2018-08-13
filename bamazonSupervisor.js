@@ -47,7 +47,7 @@ function viewProductByDept(){
         // cli-table build
         var table = new Table({
             head: ["Id", "Department", "Over-Head" , "Sales", "Profit"]
-        , colWidths: [7, 30, 10, 7, 7]
+        , colWidths: [5, 20, 10, 10, 10]
         });
         
         //push data to table
@@ -58,7 +58,7 @@ function viewProductByDept(){
         }
         // displays table
         console.log(table.toString());
-        beTheBoss();
+        isThatAll();
     })
 };
 
@@ -108,9 +108,26 @@ function createNewDept(){
             function(err, res){
                 if(err) throw err;
                 console.log('Another department was added.');
-      })
-      beTheBoss();
+                isThatAll();
+        })
     });
 }
+
+function isThatAll(){
+
+    inquirer.prompt([{
+        type: "confirm",
+        name: "reply",
+        message: "Do you need to do anything else?"
+    }]).then(function(ans){
+        if (ans.reply){
+            beTheBoss();
+        } 
+            else {
+                console.log("See you soon!");
+                connection.end();
+            }
+    });
+};
 
 beTheBoss();
