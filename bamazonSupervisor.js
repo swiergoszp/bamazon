@@ -14,7 +14,7 @@ var connection = mysql.createConnection({
 	user: "root",
 
 	// Your password
-	password: "redwings19",
+	password: "",
 	database: "bamazonDB"
 });
 
@@ -26,7 +26,7 @@ function beTheBoss(){
     choices: [
         "View Product Sales by Department", 
         "Create New Department", 
-        "End Session"
+        "Quit"
     ]
   }]).then(function(ans){
     switch(ans.supervisor){
@@ -34,7 +34,7 @@ function beTheBoss(){
         break;
         case "Create New Department": createNewDept();
         break;
-        case "End Session": console.log('Bye!');
+        case "Quit": console.log('Bye!');
     }
   });
 };
@@ -44,53 +44,70 @@ function viewProductByDept(){
     //prints the items for sale and their details
     connection.query('SELECT * FROM departments', function(err, res){
         if(err) throw err;
-        console.log('>>>>>>Product Sales by Department<<<<<<');
-        console.log('----------------------------------------------------------------------------------------------------')
-
-        for(var i = 0; i<res.length;i++){
-        console.log("Department ID: " + res[i].DepartmentID + " | " + "Department Name: " + res[i].DepartmentName + " | " + "Over Head Cost: " + (res[i].OverHeadCosts).toFixed(2) + " | " + "Product Sales: " + (res[i].TotalSales).toFixed(2) + " | " + "Total Profit: " + (res[i].TotalSales - res[i].OverHeadCosts).toFixed(2));
-        console.log('--------------------------------------------------------------------------------------------------')
+        // cli-table build
+        var table = new Table({
+            head: ["Id", "Department", "Over-Head" , "Sales", "Profit"]
+        , colWidths: [7, 30, 10, 7, 7]
+        });
+        
+        //push data to table
+        for (i = 0; i < res.length; i++) {
+            table.push(
+                [res[i].department_id, res[i].department_name, (res[i].over_head_costs).toFixed(2), (res[i].total_sales).toFixed(2), (res[i].total_sales - res[i].over_head_costs).toFixed(2)]
+            )
         }
+        // displays table
+        console.log(table.toString());
         beTheBoss();
     })
 };
 
 //create a new department
 function createNewDept(){
-    console.log('>>>>>>Creating New Department<<<<<<');
-    //prompts to add deptName and numbers. if no value is then by default = 0
+    console.log("Creating a new department");
+    //prompts to add name and numbers. if no value is then by default = 0
     inquirer.prompt([
     {
         type: "input",
-        name: "deptName",
+        name: "name",
         message: "Department Name: "
     }, {
         type: "input",
-        name: "overHeadCost",
+        name: "cost",
         message: "Over Head Cost: ",
         default: 0,
         validate: function(val){
-            if(isNaN(val) === false){return true;}
-            else{return false;}
+            if(isNaN(val) === false){
+                return true;
+            }
+                else {
+                    return false;
+                }
         }
     }, {
         type: "input",
-        name: "prodSales",
+        name: "sales",
         message: "Product Sales: ",
         default: 0,
         validate: function(val){
-            if(isNaN(val) === false){return true;}
-            else{return false;}
+            if(isNaN(val) === false){
+                return true;
+            }
+                else {
+                    return false;
+                }
         }
     }
-    ]).then(function(ans){
-      connection.query('INSERT INTO Departments SET ?',{
-            DepartmentName: ans.deptName,
-            OverHeadCosts: ans.overHeadCost,
-            TotalSales: ans.prodSales
-        }, function(err, res){
-            if(err) throw err;
-            console.log('Another department was added.');
+    ]).then(function(value){
+      connection.query('INSERT INTO Departments SET ?',
+      {
+            department_name: value.name,
+            over_head_costs: value.cost,
+            total_sales: value.sales
+        }, 
+            function(err, res){
+                if(err) throw err;
+                console.log('Another department was added.');
       })
       beTheBoss();
     });
